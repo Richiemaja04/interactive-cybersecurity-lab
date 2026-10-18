@@ -5,7 +5,7 @@ services:
     region: oregon
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python -c "from app import create_app; from app.extensions import db; app = create_app(); with app.app_context(): db.create_all()" && python scripts/seed_test_definitions.py && gunicorn "app:create_app()" --workers 2 --timeout 120 --bind 0.0.0.0:$PORT
+    startCommand: bash scripts/start.sh
     healthCheckPath: /health
     envVars:
       - key: FLASK_ENV
