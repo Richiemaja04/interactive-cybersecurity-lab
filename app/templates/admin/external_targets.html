@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}External Target Safeguards — Administrator Center{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Breadcrumb -->
+  <nav aria-label="Breadcrumb" style="margin-bottom: 1.5rem;">
+    <ol style="display: flex; gap: 0.5rem; list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+      <li><a href="{{ url_for('admin.index') }}">Admin</a></li>
+      <li>/</li>
+      <li style="color: var(--text-primary); font-weight: 600;">External Targets</li>
+    </ol>
+  </nav>
+
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--severity-high); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+        Scope Controls & Allowlist Protection
+      </div>
+      <h1 style="font-size: 2rem; margin: 0 0 0.5rem 0;">External Target Approvals</h1>
+      <p style="color: var(--text-muted); margin: 0; font-size: 1rem;">
+        Authorize verified hostnames for external testing mode with strict SSRF and RFC 1918 private IP blocking.
+      </p>
+    </div>
+
+    <div>
+      <button type="button" class="btn btn-primary" onclick="document.getElementById('approve-dialog').showModal();" style="font-size: 0.875rem;">
+        + Approve Hostname
+      </button>
+    </div>
+  </div>
+
+  <!-- Safety Boundary Notice -->
+  <div class="cyber-card" style="margin-bottom: 2rem; border-left: 4px solid var(--accent-cyan); background: var(--bg-surface);">
+    <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.5rem;">Enforced Safety Controls:</div>
+    <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text-muted); line-height: 1.6;">
+      <li><strong>Port & Protocol:</strong> HTTPS on Port 443 strictly enforced (HTTP and non-standard ports rejected).</li>
+      <li><strong>Private Network Isolation:</strong> Loopback (127.0.0.0/8), RFC 1918 (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), and link-local ranges blocked.</li>
+      <li><strong>Rebinding Prevention:</strong> DNS resolved before and after redirection with automatic scope termination on deviation.</li>
+      <li><strong>Read-Only Mode:</strong> Remediation workflows are strictly forbidden against external hostnames.</li>
+    </ul>
+  </div>
+
+  <!-- Approvals Table -->
+  <div class="cyber-card" style="background: var(--bg-surface);">
+    <h2 style="font-size: 1.25rem; margin-top: 0; margin-bottom: 1rem;">Approved Hostnames</h2>
+
+    {% if approvals %}
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-subtle); text-align: left; color: var(--text-muted);">
+              <th style="padding: 0.75rem 0.5rem;">Hostname</th>
+              <th style="padding: 0.75rem 0.5rem;">Status</th>
+              <th style="padding: 0.75rem 0.5rem;">Approved By</th>
+              <th style="padding: 0.75rem 0.5rem;">Notes</th>
+              <th style="padding: 0.75rem 0.5rem;">Created</th>
+              <th style="padding: 0.75rem 0.5rem; text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in approvals %}
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-weight: 600; color: var(--accent-cyan);">
+                  {{ app.hostname }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  <span class="badge {{ 'badge-secure' if app.is_active else 'badge-sim' }}">
+                    {{ 'Approved' if app.is_active else 'Deactivated' }}
+                  </span>
+                </td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  {{ app.approved_by.username if app.approved_by else 'Admin' }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">
+                  {{ app.approval_notes or '—' }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">
+                  {{ app.created_at.strftime('%Y-%m-%d %H:%M UTC') }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; text-align: right;">
+                  {% if app.is_active %}
+                    <form action="{{ url_for('external_targets.deactivate_target', target_id=app.id) }}" method="POST" style="margin: 0; display: inline;">
+                      {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+                      <button type="submit" class="btn btn-secondary" style="padding: 0.25rem 0.65rem; font-size: 0.8rem;">
+                        Deactivate
+                      </button>
+                    </form>
+                  {% else %}
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Inactive</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="padding: 2.5rem; text-align: center; color: var(--text-muted); background: var(--bg-deep); border-radius: 6px;">
+        No external hostnames currently approved. Built-in lab targets are active.
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Dialog: Approve Hostname -->
+  <dialog id="approve-dialog" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-accent); border-radius: 8px; padding: 2rem; max-width: 500px; width: 100%;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h2 style="font-size: 1.35rem; margin: 0;">Approve Target Hostname</h2>
+      <button type="button" onclick="document.getElementById('approve-dialog').close();" style="background: none; border: none; color: var(--text-muted); font-size: 1.25rem; cursor: pointer;">&times;</button>
+    </div>
+
+    <form action="{{ url_for('external_targets.approve_target') }}" method="POST">
+      {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+
+      <div style="margin-bottom: 1.25rem;">
+        <label for="hostname" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Target FQDN Hostname</label>
+        <input type="text" id="hostname" name="hostname" class="form-input" required placeholder="e.g. staging.example.com">
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Do not include http:// or slashes. HTTPS port 443 is enforced.</div>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label for="approval_notes" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Authorization Context / Notes</label>
+        <textarea id="approval_notes" name="approval_notes" class="form-input" rows="3" placeholder="Authorized bug bounty scope, engagement ID, or testing window..."></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('approve-dialog').close();">Cancel</button>
+        <button type="submit" class="btn btn-primary">Approve Hostname</button>
+      </div>
+    </form>
+  </dialog>
+</div>
+{% endblock %}

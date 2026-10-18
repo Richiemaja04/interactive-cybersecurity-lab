@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Scenario Presets — Interactive Cybersecurity Lab{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--accent-cyan); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+        Deterministic Environment Configurations
+      </div>
+      <h1 style="font-size: 2rem; margin: 0 0 0.5rem 0;">Scenario Presets</h1>
+      <p style="color: var(--text-muted); margin: 0; font-size: 1rem;">
+        Repeatable scenario blueprints ensuring predictable, reliable lab demonstrations.
+      </p>
+    </div>
+
+    {% if current_user.is_administrator %}
+      <div style="display: flex; gap: 0.75rem;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('import-dialog').showModal();" style="font-size: 0.875rem;">
+          Import Preset Package
+        </button>
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('new-preset-dialog').showModal();" style="font-size: 0.875rem;">
+          + New Preset
+        </button>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Presets Grid -->
+  <div class="grid grid-2" style="gap: 1.5rem; margin-bottom: 2.5rem;">
+    {% if presets %}
+      {% for p in presets %}
+        <div class="cyber-card" style="background: var(--bg-surface); border: 1px solid var(--border-accent);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+            <div>
+              <span class="badge badge-info" style="font-size: 0.75rem;">Version {{ p.version }}</span>
+              <h2 style="font-size: 1.25rem; margin: 0.35rem 0 0 0;">{{ p.name }}</h2>
+            </div>
+            <a href="{{ url_for('presets.export_preset', preset_id=p.id) }}" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.3rem 0.65rem;" title="Download JSON Preset Package">
+              Export JSON
+            </a>
+          </div>
+
+          <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.25rem;">
+            {{ p.description or 'Standard deterministic test configuration parameters.' }}
+          </p>
+
+          <div>
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.35rem;">
+              Configuration JSON Snapshot
+            </div>
+            <pre style="background: var(--bg-deep); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.75rem; font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-cyan); overflow-x: auto; margin: 0; max-height: 140px;">{{ p.config_json | tojson(indent=2) }}</pre>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; color: var(--text-muted); background: var(--bg-surface); border-radius: 8px; border: 1px dashed var(--border-subtle);">
+        No custom presets configured. Use default scenarios or create a new preset above.
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Dialog: Create Preset (Admin Only) -->
+  {% if current_user.is_administrator %}
+    <dialog id="new-preset-dialog" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-accent); border-radius: 8px; padding: 2rem; max-width: 540px; width: 100%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.35rem; margin: 0;">Create Scenario Preset</h2>
+        <button type="button" onclick="document.getElementById('new-preset-dialog').close();" style="background: none; border: none; color: var(--text-muted); font-size: 1.25rem; cursor: pointer;">&times;</button>
+      </div>
+
+      <form action="{{ url_for('presets.create_preset') }}" method="POST">
+        {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+
+        <div style="margin-bottom: 1.25rem;">
+          <label for="name" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Preset Name</label>
+          <input type="text" id="name" name="name" class="form-input" required placeholder="e.g. Strict CSP & Locked Cookies">
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+          <label for="description" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Description</label>
+          <textarea id="description" name="description" class="form-input" rows="3" placeholder="Explain the instructional intent or parameters of this configuration"></textarea>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+          <label for="config_json" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Configuration JSON</label>
+          <textarea id="config_json" name="config_json" class="form-input" rows="5" style="font-family: var(--font-mono); font-size: 0.85rem;" placeholder='{"enforce_strict_csp": true, "max_login_attempts": 3}'></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('new-preset-dialog').close();">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Preset</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Dialog: Import Preset Package (Admin Only) -->
+    <dialog id="import-dialog" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-accent); border-radius: 8px; padding: 2rem; max-width: 540px; width: 100%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.35rem; margin: 0;">Import Preset Package</h2>
+        <button type="button" onclick="document.getElementById('import-dialog').close();" style="background: none; border: none; color: var(--text-muted); font-size: 1.25rem; cursor: pointer;">&times;</button>
+      </div>
+
+      <form action="{{ url_for('presets.import_preset') }}" method="POST" enctype="multipart/form-data">
+        {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+
+        <div style="margin-bottom: 1.25rem;">
+          <label for="preset_file" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Preset JSON File</label>
+          <input type="file" id="preset_file" name="preset_file" accept=".json" class="form-input">
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+          <label for="preset_json" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Or Paste Preset JSON</label>
+          <textarea id="preset_json" name="preset_json" class="form-input" rows="4" style="font-family: var(--font-mono); font-size: 0.85rem;" placeholder='{"schema_version": 1, "preset": {...}}'></textarea>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+          <label for="resolution_mode" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Conflict Resolution Strategy</label>
+          <select id="resolution_mode" name="resolution_mode" class="form-input">
+            <option value="create_new">Import as New (Append Timestamp)</option>
+            <option value="replace">Replace Existing (Explicit Overwrite)</option>
+            <option value="skip">Skip if Duplicate Exists</option>
+          </select>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('import-dialog').close();">Cancel</button>
+          <button type="submit" class="btn btn-primary">Process Import</button>
+        </div>
+      </form>
+    </dialog>
+  {% endif %}
+</div>
+{% endblock %}

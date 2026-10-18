@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Security Audit Log — Administrator Center{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Breadcrumb -->
+  <nav aria-label="Breadcrumb" style="margin-bottom: 1.5rem;">
+    <ol style="display: flex; gap: 0.5rem; list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+      <li><a href="{{ url_for('admin.index') }}">Admin</a></li>
+      <li>/</li>
+      <li style="color: var(--text-primary); font-weight: 600;">Security Audit Log</li>
+    </ol>
+  </nav>
+
+  <div style="margin-bottom: 2rem;">
+    <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--severity-high); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+      Immutable Security Logging
+    </div>
+    <h1 style="font-size: 2rem; margin: 0 0 0.5rem 0;">Security Audit Event Log</h1>
+    <p style="color: var(--text-muted); margin: 0; font-size: 1rem;">
+      Tamper-evident record of authentication attempts, administrative actions, target scope violations, and remediation events.
+    </p>
+  </div>
+
+  <div class="cyber-card" style="background: var(--bg-surface);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+      <h2 style="font-size: 1.25rem; margin: 0;">Audit Events ({{ events|length }})</h2>
+      <span class="badge badge-info">Append-Only / Non-Modifiable</span>
+    </div>
+
+    {% if events %}
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-subtle); text-align: left; color: var(--text-muted);">
+              <th style="padding: 0.75rem 0.5rem;">Event ID</th>
+              <th style="padding: 0.75rem 0.5rem;">Timestamp</th>
+              <th style="padding: 0.75rem 0.5rem;">Action</th>
+              <th style="padding: 0.75rem 0.5rem;">User</th>
+              <th style="padding: 0.75rem 0.5rem;">IP Address</th>
+              <th style="padding: 0.75rem 0.5rem;">Sanitized Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ev in events %}
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono);">#{{ ev.id }}</td>
+                <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">
+                  {{ ev.timestamp.strftime('%Y-%m-%d %H:%M:%S UTC') }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; font-weight: 700; color: {{ 'var(--severity-critical)' if 'VIOLATION' in ev.action or 'FAIL' in ev.action else 'var(--accent-cyan)' }};">
+                  {{ ev.action }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  {{ ev.user.username if ev.user else 'System / Anonymous' }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); color: var(--text-muted);">
+                  {{ ev.ip_address or '—' }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  <code style="font-size: 0.8rem; background: var(--bg-deep); padding: 0.2rem 0.4rem; border-radius: 4px; color: var(--text-primary);">
+                    {{ ev.detail | tojson if ev.detail else '—' }}
+                  </code>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="padding: 2.5rem; text-align: center; color: var(--text-muted); background: var(--bg-deep); border-radius: 6px;">
+        No security audit events recorded yet.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

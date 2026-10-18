@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}{{ test_def.name }} (Test {{ test_def.number }}) — Interactive Cybersecurity Lab{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Breadcrumb & Top Bar -->
+  <nav aria-label="Breadcrumb" style="margin-bottom: 1.5rem;">
+    <ol style="display: flex; gap: 0.5rem; list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+      <li><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+      <li>/</li>
+      <li style="color: var(--text-primary); font-weight: 600;">Test {{ test_def.number }}: {{ test_def.name }}</li>
+    </ol>
+  </nav>
+
+  <!-- Module Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+        <span class="badge badge-info" style="font-family: var(--font-mono); font-weight: 700;">TEST {{ test_def.number }}</span>
+        <span class="badge badge-info">{{ test_def.category }}</span>
+        {% if scenario.state.value == 'vulnerable' %}
+          <span class="badge badge-vuln" id="scenario-state-badge">Scenario: Vulnerable</span>
+        {% else %}
+          <span class="badge badge-secure" id="scenario-state-badge">Scenario: Secure (Remediated)</span>
+        {% endif %}
+      </div>
+      <h1 style="font-size: 2.25rem; margin: 0 0 0.5rem 0;">{{ test_def.name }}</h1>
+      <p style="font-size: 1.05rem; color: var(--text-muted); max-width: 800px; margin: 0;">
+        {{ test_def.objective }}
+      </p>
+    </div>
+
+    <!-- Actions & Scenario State Toggle -->
+    <div style="display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-end;">
+      <div style="display: flex; gap: 0.75rem;">
+        <!-- Toggle Scenario State Form -->
+        <form action="{{ url_for(test_slug_url + '.toggle_scenario') }}" method="POST" style="margin: 0;">
+          {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+          <button type="submit" class="btn btn-secondary" style="font-size: 0.875rem;" id="btn-toggle-scenario">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+            Switch to {{ 'Secure Mode' if scenario.state.value == 'vulnerable' else 'Vulnerable Mode' }}
+          </button>
+        </form>
+
+        <!-- Run Live Test Form -->
+        <form action="{{ url_for(test_slug_url + '.run_test') }}" method="POST" style="margin: 0;">
+          {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+          <button type="submit" class="btn btn-primary" style="font-size: 0.875rem;" id="btn-run-check">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Execute Live Test
+          </button>
+        </form>
+      </div>
+
+      <div style="font-size: 0.8rem; color: var(--text-muted);">
+        Environment: <strong style="color: var(--accent-cyan);">Controlled Lab (Synthetic Data)</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security Concept Callout -->
+  <div class="cyber-card" style="margin-bottom: 2rem; border-left: 4px solid var(--accent-cyan);">
+    <div style="display: flex; gap: 1rem; align-items: flex-start;">
+      <div style="color: var(--accent-cyan); font-size: 1.5rem;" aria-hidden="true">💡</div>
+      <div>
+        <h2 style="font-size: 1.15rem; margin-top: 0; margin-bottom: 0.4rem;">Security Concept & Browser Testing Principle</h2>
+        <p style="margin: 0; font-size: 0.95rem; color: var(--text-muted); line-height: 1.6;">
+          {{ test_def.concept }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Lab Exploration Section -->
+  <div class="cyber-card" style="margin-bottom: 2rem; background: var(--bg-surface);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+      <h2 style="font-size: 1.25rem; margin: 0;">Target Scenario & Interactive Lab View</h2>
+      <span class="badge {{ 'badge-vuln' if scenario.state.value == 'vulnerable' else 'badge-secure' }}">
+        Active Configuration: {{ scenario.state.value|upper }}
+      </span>
+    </div>
+
+    <!-- Lab specific interactive sandbox instructions -->
+    <div style="background: var(--bg-deep); border: 1px solid var(--border-accent); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-primary);">
+        Safe Test Action (What to observe):
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+        {{ presenter_notes.demonstration_steps[0] if presenter_notes and presenter_notes.demonstration_steps else 'Execute check to inspect browser-level headers and server response.' }}
+      </p>
+
+      {% if lab_url %}
+        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
+          <a href="{{ lab_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="font-size: 0.85rem;" id="link-lab-target">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Open Lab Endpoint in Browser
+          </a>
+          <span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-cyan);">{{ lab_url }}</span>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Expected Behavior Comparison Grid -->
+    <div class="grid grid-2" style="gap: 1.25rem;">
+      <div style="background: rgba(255, 68, 68, 0.05); border: 1px solid rgba(255, 68, 68, 0.3); border-radius: 8px; padding: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <span class="badge badge-vuln">[VULNERABLE] Expected Behavior</span>
+        </div>
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">
+          {{ presenter_notes.evidence_meaning if presenter_notes else 'Vulnerable scenario leaves security controls unconfigured or bypassed.' }}
+        </p>
+      </div>
+
+      <div style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 8px; padding: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <span class="badge badge-secure">[SECURE] Remediated Behavior</span>
+        </div>
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">
+          {{ presenter_notes.remediation_takeaway if presenter_notes else 'Secure scenario enforces strict validation, encoding, and authorization barriers.' }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Presenter Notes & Instruction Panel (Collapsible) -->
+  {% if presenter_notes %}
+    <details class="cyber-card" style="margin-bottom: 2rem;" open>
+      <summary style="cursor: pointer; font-size: 1.15rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+        <span>Presenter Notes & Demonstration Guide</span>
+      </summary>
+      <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+        <div style="margin-bottom: 1rem;">
+          <div style="font-weight: 600; font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 0.25rem;">Objective:</div>
+          <div style="font-size: 0.95rem;">{{ presenter_notes.objective }}</div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <div style="font-weight: 600; font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 0.4rem;">Demonstration Steps:</div>
+          <ol style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+            {% for step in presenter_notes.demonstration_steps %}
+              <li>{{ step }}</li>
+            {% endfor %}
+          </ol>
+        </div>
+
+        <div>
+          <div style="font-weight: 600; font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 0.4rem;">Key Talking Points:</div>
+          <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+            {% for tp in presenter_notes.talking_points %}
+              <li>{{ tp }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </details>
+  {% endif %}
+
+  <!-- Verification Steps & Remediation Guidance -->
+  <div class="grid grid-2" style="gap: 1.5rem; margin-bottom: 2.5rem;">
+    <!-- Verification Steps -->
+    <div class="cyber-card">
+      <h2 style="font-size: 1.15rem; margin-top: 0; margin-bottom: 1rem; color: var(--text-primary);">
+        Browser Verification Procedure
+      </h2>
+      <ol style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+        {% for step in verification_steps %}
+          <li>{{ step }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+
+    <!-- Remediation Guidance -->
+    <div class="cyber-card">
+      <h2 style="font-size: 1.15rem; margin-top: 0; margin-bottom: 1rem; color: var(--text-primary);">
+        Remediation Guidance
+      </h2>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+        {{ remediation.summary if remediation else 'Follow standard secure design patterns to remediate.' }}
+      </p>
+      {% if remediation and remediation.steps %}
+        <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text-muted); line-height: 1.6;">
+          {% for r_step in remediation.steps %}
+            <li>{{ r_step }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recent Execution History for This Test -->
+  <div class="cyber-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h2 style="font-size: 1.15rem; margin: 0;">Recent Test Executions</h2>
+      <span style="font-size: 0.85rem; color: var(--text-muted);">Showing your runs</span>
+    </div>
+
+    {% if recent_runs %}
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-subtle); text-align: left; color: var(--text-muted);">
+              <th style="padding: 0.75rem 0.5rem;">Run ID</th>
+              <th style="padding: 0.75rem 0.5rem;">State</th>
+              <th style="padding: 0.75rem 0.5rem;">Scenario</th>
+              <th style="padding: 0.75rem 0.5rem;">Finding</th>
+              <th style="padding: 0.75rem 0.5rem;">Verification</th>
+              <th style="padding: 0.75rem 0.5rem;">Executed At</th>
+              <th style="padding: 0.75rem 0.5rem; text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in recent_runs %}
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono);">#{{ r.id }}</td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  <span class="badge {{ 'badge-secure' if r.state.value == 'completed' else 'badge-vuln' if r.state.value == 'failed' else 'badge-info' }}">
+                    {{ r.state.value|capitalize }}
+                  </span>
+                </td>
+                <td style="padding: 0.75rem 0.5rem;">v{{ r.scenario_version_at_run }}</td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  {% set run_finding = r.findings.first() %}
+                  {% if run_finding %}
+                    <span style="font-weight: 600; color: {{ 'var(--severity-critical)' if run_finding.severity.value == 'critical' else 'var(--severity-high)' if run_finding.severity.value == 'high' else 'var(--severity-medium)' if run_finding.severity.value == 'medium' else 'var(--severity-low)' }};">
+                      {{ run_finding.title }}
+                    </span>
+                  {% else %}
+                    <span style="color: var(--text-muted);">No Finding (Clean)</span>
+                  {% endif %}
+                </td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  {% if run_finding %}
+                    <span class="badge {{ 'badge-vuln' if run_finding.verification_status.value == 'confirmed' else 'badge-sim' if run_finding.verification_status.value == 'simulated' else 'badge-info' }}">
+                      {{ run_finding.verification_status.value|capitalize }}
+                    </span>
+                  {% else %}
+                    <span class="badge badge-secure">Clean</span>
+                  {% endif %}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">
+                  {{ r.started_at.strftime('%Y-%m-%d %H:%M:%S UTC') if r.started_at else '—' }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; text-align: right;">
+                  <a href="{{ url_for(test_slug_url + '.view_run', run_id=r.id) }}" class="btn btn-secondary" style="padding: 0.25rem 0.65rem; font-size: 0.8rem;">
+                    View Evidence
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="padding: 2rem; text-align: center; color: var(--text-muted); background: var(--bg-deep); border-radius: 8px;">
+        No execution runs recorded yet. Click <strong>Execute Live Test</strong> above to initiate verification.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

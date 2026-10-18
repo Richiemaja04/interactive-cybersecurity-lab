@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Data Retention Management — Administrator Center{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Breadcrumb -->
+  <nav aria-label="Breadcrumb" style="margin-bottom: 1.5rem;">
+    <ol style="display: flex; gap: 0.5rem; list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+      <li><a href="{{ url_for('admin.index') }}">Admin</a></li>
+      <li>/</li>
+      <li style="color: var(--text-primary); font-weight: 600;">Data Retention</li>
+    </ol>
+  </nav>
+
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--severity-high); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+        90-Day Policy Enforcement
+      </div>
+      <h1 style="font-size: 2rem; margin: 0 0 0.5rem 0;">Data Retention & Purge Jobs</h1>
+      <p style="color: var(--text-muted); margin: 0; font-size: 1rem;">
+        Automated data minimization: test execution histories, reports, and evidence records older than 90 days are purged.
+      </p>
+    </div>
+
+    <div>
+      <form action="{{ url_for('retention.run_job') }}" method="POST" style="margin: 0;">
+        {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+        <button type="submit" class="btn btn-secondary" onclick="return confirm('Execute retention cleanup job now?');">
+          Execute Retention Purge Now
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="cyber-card" style="background: var(--bg-surface);">
+    <h2 style="font-size: 1.25rem; margin-top: 0; margin-bottom: 1rem;">Historical Retention Executions</h2>
+
+    {% if jobs %}
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-subtle); text-align: left; color: var(--text-muted);">
+              <th style="padding: 0.75rem 0.5rem;">Job ID</th>
+              <th style="padding: 0.75rem 0.5rem;">Scope</th>
+              <th style="padding: 0.75rem 0.5rem;">Cutoff Date</th>
+              <th style="padding: 0.75rem 0.5rem;">Records Deleted</th>
+              <th style="padding: 0.75rem 0.5rem;">Triggered By</th>
+              <th style="padding: 0.75rem 0.5rem;">Executed At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for job in jobs %}
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono);">#{{ job.id }}</td>
+                <td style="padding: 0.75rem 0.5rem; font-weight: 600;">{{ job.scope }}</td>
+                <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">{{ job.cutoff_date.strftime('%Y-%m-%d') }}</td>
+                <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); color: var(--accent-cyan);">
+                  {{ job.records_deleted }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  {{ job.triggered_by.username if job.triggered_by else 'Automated Scheduler' }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">
+                  {{ job.executed_at.strftime('%Y-%m-%d %H:%M UTC') }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="padding: 2.5rem; text-align: center; color: var(--text-muted); background: var(--bg-deep); border-radius: 6px;">
+        No retention cleanup jobs recorded yet.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

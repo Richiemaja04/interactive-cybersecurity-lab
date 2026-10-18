@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Administrator Control Center — Interactive Cybersecurity Lab{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="margin-bottom: 2rem;">
+    <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--severity-high); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+      Administrative Operations
+    </div>
+    <h1 style="font-size: 2rem; margin: 0 0 0.5rem 0;">Platform Administration</h1>
+    <p style="color: var(--text-muted); margin: 0; font-size: 1rem;">
+      Manage users, review security audit logs, approve external testing targets, and configure system presets.
+    </p>
+  </div>
+
+  <!-- Metric Overview Cards -->
+  <div class="grid grid-4" style="gap: 1.25rem; margin-bottom: 2.5rem;">
+    <div class="cyber-card" style="background: var(--bg-surface);">
+      <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Users</div>
+      <div style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">{{ user_count }}</div>
+    </div>
+
+    <div class="cyber-card" style="background: var(--bg-surface);">
+      <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Executions</div>
+      <div style="font-size: 1.75rem; font-weight: 800; color: var(--accent-cyan); margin-top: 0.25rem;">{{ run_count }}</div>
+    </div>
+
+    <div class="cyber-card" style="background: var(--bg-surface);">
+      <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Active Presets</div>
+      <div style="font-size: 1.75rem; font-weight: 800; color: var(--status-secure); margin-top: 0.25rem;">{{ preset_count }}</div>
+    </div>
+
+    <div class="cyber-card" style="background: var(--bg-surface);">
+      <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Audit Events</div>
+      <div style="font-size: 1.75rem; font-weight: 800; color: var(--severity-high); margin-top: 0.25rem;">{{ audit_count }}</div>
+    </div>
+  </div>
+
+  <!-- User Accounts Management Table -->
+  <div class="cyber-card" style="background: var(--bg-surface); margin-bottom: 2.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+      <h2 style="font-size: 1.25rem; margin: 0;">Provisioned User Accounts</h2>
+      <span style="font-size: 0.85rem; color: var(--text-muted);">Accounts provisioned via secure CLI script only</span>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-subtle); text-align: left; color: var(--text-muted);">
+            <th style="padding: 0.75rem 0.5rem;">ID</th>
+            <th style="padding: 0.75rem 0.5rem;">Username</th>
+            <th style="padding: 0.75rem 0.5rem;">Email</th>
+            <th style="padding: 0.75rem 0.5rem;">Role</th>
+            <th style="padding: 0.75rem 0.5rem;">Status</th>
+            <th style="padding: 0.75rem 0.5rem;">Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+            <tr style="border-bottom: 1px solid var(--border-subtle);">
+              <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono);">#{{ u.id }}</td>
+              <td style="padding: 0.75rem 0.5rem; font-weight: 600;">{{ u.username }}</td>
+              <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">{{ u.email }}</td>
+              <td style="padding: 0.75rem 0.5rem;">
+                <span class="badge {{ 'badge-vuln' if u.role.value == 'administrator' else 'badge-info' }}">
+                  {{ u.role.value|capitalize }}
+                </span>
+              </td>
+              <td style="padding: 0.75rem 0.5rem;">
+                <span class="badge {{ 'badge-secure' if u.is_active else 'badge-sim' }}">
+                  {{ 'Active' if u.is_active else 'Disabled' }}
+                </span>
+              </td>
+              <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">
+                {{ u.created_at.strftime('%Y-%m-%d %H:%M UTC') }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Quick Navigation to Admin Subsystems -->
+  <div class="grid grid-2" style="gap: 1.5rem;">
+    <div class="cyber-card">
+      <h3 style="font-size: 1.15rem; margin-top: 0; margin-bottom: 0.5rem;">Security Audit Trail</h3>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Immutable audit log tracking all authentication, authorization, external target violations, and remediation events.
+      </p>
+      <a href="{{ url_for('audit.index') }}" class="btn btn-secondary" style="font-size: 0.85rem;">
+        View Audit Events &rarr;
+      </a>
+    </div>
+
+    <div class="cyber-card">
+      <h3 style="font-size: 1.15rem; margin-top: 0; margin-bottom: 0.5rem;">External Target Approvals</h3>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Enforce strict scope controls, domain allowlists, and RFC 1918 private IP protections for external testing.
+      </p>
+      <a href="{{ url_for('external_targets.index') }}" class="btn btn-secondary" style="font-size: 0.85rem;">
+        Manage Approved Targets &rarr;
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

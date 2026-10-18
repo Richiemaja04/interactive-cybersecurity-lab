@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Interactive Cybersecurity Lab{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Dashboard Header & Summary Metrics -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--accent-cyan); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+        Security Operations Center
+      </div>
+      <h1 style="font-size: 2rem;">Security Test Dashboard</h1>
+    </div>
+
+    <!-- Quick action links -->
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <a href="{{ url_for('reports.index') }}" class="btn btn-secondary" style="font-size: 0.875rem;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Generate Report
+      </a>
+      <a href="{{ url_for('sequences.index') }}" class="btn btn-primary" style="font-size: 0.875rem;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Guided Presentation
+      </a>
+    </div>
+  </div>
+
+  <!-- Evidence & Finding Provenance Summary Bar (No fake numeric score) -->
+  <div class="cyber-card" style="margin-bottom: 2.5rem; background: var(--bg-surface); border: 1px solid var(--border-accent);">
+    <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 1rem;">
+      Evidence Provenance & Verification Classification Breakdown
+    </div>
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--status-secure);"></span>
+        <div>
+          <div style="font-size: 1.25rem; font-weight: 800;">10</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Active Test Modules</div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--accent-cyan);"></span>
+        <div>
+          <div style="font-size: 1.25rem; font-weight: 800;">Controlled</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Lab Environment</div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--status-simulated);"></span>
+        <div>
+          <div style="font-size: 1.25rem; font-weight: 800;">Explicitly Labeled</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Simulated Fallbacks</div>
+        </div>
+      </div>
+
+      <div style="margin-left: auto; font-size: 0.825rem; color: var(--text-muted);">
+        Policy: <strong style="color: var(--text-primary);">Zero Numeric Scoring · Evidence-Driven Verification</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Cards Grid: All 10 Tests -->
+  <h2 style="font-size: 1.35rem; margin-bottom: 1.25rem;">Security Checks (01 — 10)</h2>
+
+  <div class="grid grid-2" style="gap: 1.25rem;">
+    <!-- 01 -->
+    <div class="cyber-card vulnerable-border" id="test-card-01">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <div>
+          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); font-size: 0.85rem;">TEST 01</span>
+          <h3 style="font-size: 1.15rem; margin-top: 0.2rem;"><a href="/tests/robots-txt">Robots.txt Enumeration</a></h3>
+        </div>
+        <span class="badge badge-info">Info Disclosure</span>
+      </div>
+      <p style="font-size: 0.875rem; margin-bottom: 1.25rem;">
+        Identify sensitive endpoints disclosed in robots.txt that lack authorization barriers.
+      </p>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="badge badge-vuln">Vulnerable Demo Ready</span>
+        <a href="/tests/robots-txt" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.85rem;">Run Check</a>
+      </div>
+    </div>
+
+    <!-- 02 -->
+    <div class="cyber-card vulnerable-border" id="test-card-02">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <div>
+          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); font-size: 0.85rem;">TEST 02</span>
+          <h3 style="font-size: 1.15rem; margin-top: 0.2rem;"><a href="/tests/idor">URL Parameter Tampering & IDOR</a></h3>
+        </div>
+        <span class="badge badge-critical">Access Control</span>
+      </div>
+      <p style="font-size: 0.875rem; margin-bottom: 1.25rem;">
+        Manipulate query parameter identifiers to access horizontal unauthorized records.
+      </p>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="badge badge-vuln">Vulnerable Demo Ready</span>
+        <a href="/tests/idor" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.85rem;">Run Check</a>
+      </div>
+    </div>
+
+    <!-- 03 -->
+    <div class="cyber-card vulnerable-border" id="test-card-03">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <div>
+          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); font-size: 0.85rem;">TEST 03</span>
+          <h3 style="font-size: 1.15rem; margin-top: 0.2rem;"><a href="/tests/forced-browsing">Forced Browsing / Directory Guessing</a></h3>
+        </div>
+        <span class="badge badge-high">Access Control</span>
+      </div>
+      <p style="font-size: 0.875rem; margin-bottom: 1.25rem;">
+        Attempt direct requests to unlinked administrative consoles and backup archives.
+      </p>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="badge badge-vuln">Vulnerable Demo Ready</span>
+        <a href="/tests/forced-browsing" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.85rem;">Run Check</a>
+      </div>
+    </div>
+
+    <!-- 04 -->
+    <div class="cyber-card vulnerable-border" id="test-card-04">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <div>
+          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); font-size: 0.85rem;">TEST 04</span>
+          <h3 style="font-size: 1.15rem; margin-top: 0.2rem;"><a href="/tests/cookies">Cookie Security Flags Inspection</a></h3>
+        </div>
+        <span class="badge badge-high">Session Security</span>
+      </div>
+      <p style="font-size: 0.875rem; margin-bottom: 1.25rem;">
+        Verify HttpOnly, Secure, and SameSite attributes protecting authentication tokens.
+      </p>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="badge badge-vuln">Vulnerable Demo Ready</span>
+        <a href="/tests/cookies" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.85rem;">Run Check</a>
+      </div>
+    </div>
+
+    <!-- 05 -->
+    <div class="cyber-card" id="test-card-05">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <div>
+          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); font-size: 0.85rem;">TEST 05</span>
+          <h3 style="font-size: 1.15rem; margin-top: 0.2rem;"><a href="/tests/https-certificate">HTTPS & Certificate Check</a></h3>
+        </div>
+        <span class="badge badge-medium">Transport</span>
+      </div>
+      <p style="font-size: 0.875rem; margin-bottom: 1.25rem;">
+        Verify TLS certificate chain validity and automated plaintext HTTP upgrade redirects.
+      </p>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="badge badge-info">Standard Check</span>
+        <a href="/tests/https-certificate" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.85rem;">Run Check</a>
+      </div>
+    </div>
+
+    <!-- 06 -->
+    <div class="cyber-card vulnerable-border" id="test-card-06">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <div>
+          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); font-size: 0.85rem;">TEST 06</span>
+          <h3 style="font-size: 1.15rem; margin-top: 0.2rem;"><a href="/tests/input-validation">Form Input Validation & XSS Awareness</a></h3>
+        </div>
+        <span class="badge badge-high">Input Defense</span>
+      </div>
+      <p style="font-size: 0.875rem; margin-bottom: 1.25rem;">
+        Test client-side validation bypass and server-side context-aware HTML entity encoding.
+      </p>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="badge badge-vuln">Vulnerable Demo Ready</span>
+        <a href="/tests/input-validation" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.85rem;">Run Check</a>
+      </div>
+    </div>
+
+    <!-- 07 -->
+    <div class="cyber-card vulnerable-border" id="test-card-07">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <div>
+          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); font-size: 0.85rem;">TEST 07</span>
+          <h3 style="font-size: 1.15rem; margin-top: 0.2rem;"><a href="/tests/source-inspection">Inspect Source & Client-Side Code</a></h3>
+        </div>
+        <span class="badge badge-high">Code Audit</span>
+      </div>
+      <p style="font-size: 0.875rem; margin-bottom: 1.25rem;">
+        Audit scripts, inline JS, and comments for hardcoded synthetic keys and hidden logic.
+      </p>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="badge badge-vuln">Vulnerable Demo Ready</span>
+        <a href="/tests/source-inspection" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.85rem;">Run Check</a>
+      </div>
+    </div>
+
+    <!-- 08 -->
+    <div class="cyber-card vulnerable-border" id="test-card-08">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <div>
+          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); font-size: 0.85rem;">TEST 08</span>
+          <h3 style="font-size: 1.15rem; margin-top: 0.2rem;"><a href="/tests/network-api">Network Tab & API Inspection</a></h3>
+        </div>
+        <span class="badge badge-medium">Data Minimization</span>
+      </div>
+      <p style="font-size: 0.875rem; margin-bottom: 1.25rem;">
+        Analyze asynchronous API responses for over-sharing of internal user and server records.
+      </p>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="badge badge-vuln">Vulnerable Demo Ready</span>
+        <a href="/tests/network-api" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.85rem;">Run Check</a>
+      </div>
+    </div>
+
+    <!-- 09 -->
+    <div class="cyber-card vulnerable-border" id="test-card-09">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <div>
+          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); font-size: 0.85rem;">TEST 09</span>
+          <h3 style="font-size: 1.15rem; margin-top: 0.2rem;"><a href="/tests/weak-credentials">Default & Weak Credentials</a></h3>
+        </div>
+        <span class="badge badge-critical">Authentication</span>
+      </div>
+      <p style="font-size: 0.875rem; margin-bottom: 1.25rem;">
+        Demonstrate risks of default passwords, lack of rate limiting, and missing account lockout.
+      </p>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="badge badge-vuln">Vulnerable Demo Ready</span>
+        <a href="/tests/weak-credentials" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.85rem;">Run Check</a>
+      </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="cyber-card vulnerable-border" id="test-card-10">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+        <div>
+          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); font-size: 0.85rem;">TEST 10</span>
+          <h3 style="font-size: 1.15rem; margin-top: 0.2rem;"><a href="/tests/error-analysis">Error Message & Stack Analysis</a></h3>
+        </div>
+        <span class="badge badge-low">Info Disclosure</span>
+      </div>
+      <p style="font-size: 0.875rem; margin-bottom: 1.25rem;">
+        Trigger edge cases to observe whether verbose stack traces or sanitized errors are returned.
+      </p>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="badge badge-vuln">Vulnerable Demo Ready</span>
+        <a href="/tests/error-analysis" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.85rem;">Run Check</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

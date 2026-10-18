@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Interactive Cybersecurity Lab — Learn. Test. Verify. Secure.{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Hero Section -->
+  <section style="text-align: center; padding: 4rem 1rem 3rem;" aria-labelledby="hero-title">
+    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--bg-surface); border: 1px solid var(--border-accent); padding: 0.4rem 1rem; border-radius: var(--radius-full); margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--accent-cyan);">
+      <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green);"></span>
+      <strong>Interactive Cybersecurity Lab</strong> · Specification Version 1.0
+    </div>
+
+    <h1 id="hero-title" style="font-size: 3rem; margin-bottom: 1rem; font-weight: 800; letter-spacing: -0.03em;">
+      Learn. Test. Verify. Secure.
+    </h1>
+    <p style="font-size: 1.25rem; max-width: 760px; margin: 0 auto 2.5rem; color: var(--text-secondary); line-height: 1.6;">
+      A controlled, presentation-ready training platform reproducing ten browser-based web security checks. Demonstrate vulnerable vs. secure behavior, capture forensic evidence, and verify real-world remediation.
+    </p>
+
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary" id="cta-start-demo" style="font-size: 1.05rem; padding: 0.85rem 1.75rem;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        Start Live Demo
+      </a>
+      <a href="#test-catalog" class="btn btn-secondary" style="font-size: 1.05rem; padding: 0.85rem 1.75rem;">
+        Explore All 10 Tests
+      </a>
+    </div>
+  </section>
+
+  <!-- Safe Testing Principles Callout Box -->
+  <section style="margin: 2.5rem 0;" aria-labelledby="principles-heading">
+    <div class="cyber-card" style="border-left: 4px solid var(--accent-cyan); background: linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, var(--bg-surface) 100%);">
+      <div style="display: flex; gap: 1rem; align-items: flex-start;">
+        <div style="font-size: 1.75rem;" aria-hidden="true">🛡️</div>
+        <div>
+          <h2 id="principles-heading" style="font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--accent-cyan);">
+            Safe-Testing Principles & Platform Boundaries
+          </h2>
+          <p style="margin-bottom: 0.75rem; font-size: 0.95rem;">
+            Security testing requires strict authorization and rigorous isolation. This platform enforces three core guarantees:
+          </p>
+          <ul style="color: var(--text-secondary); font-size: 0.9rem; padding-left: 1.25rem; line-height: 1.6;">
+            <li><strong>Isolated Lab Environment:</strong> All vulnerable scenarios run within sandboxed routes with synthetic data. Production and admin assets are physically isolated.</li>
+            <li><strong>Built-in Lab vs. External Targets:</strong> The lab operates entirely on local controlled scenarios by default. Optional external testing requires explicit administrator approval and strict RFC 1918 private-IP blocklists.</li>
+            <li><strong>Zero Harmful Payloads:</strong> Every test action uses benign, non-destructive payloads designed for educational verification without weaponization.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5-Step Methodology / Workflow -->
+  <section style="margin: 4rem 0;" aria-labelledby="workflow-heading">
+    <div style="text-align: center; margin-bottom: 2.5rem;">
+      <h2 id="workflow-heading" style="margin-bottom: 0.5rem;">The Five-Stage Security Cycle</h2>
+      <p>A structured engineering discipline from discovery through confirmed verification.</p>
+    </div>
+
+    <div class="grid grid-3" style="gap: 1.25rem;">
+      <div class="cyber-card">
+        <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan); margin-bottom: 0.5rem;">01. Define</div>
+        <p style="font-size: 0.9rem;">Establish preconditions, test scope, and baseline expectations using standard presets.</p>
+      </div>
+      <div class="cyber-card">
+        <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan); margin-bottom: 0.5rem;">02. Test</div>
+        <p style="font-size: 0.9rem;">Execute safe browser-level actions with execution lifecycle state tracking and timeouts.</p>
+      </div>
+      <div class="cyber-card">
+        <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan); margin-bottom: 0.5rem;">03. Observe</div>
+        <p style="font-size: 0.9rem;">Collect sanitized evidence records tagged with provenance: Observed Live, Controlled, or Simulated.</p>
+      </div>
+      <div class="cyber-card">
+        <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan); margin-bottom: 0.5rem;">04. Interpret</div>
+        <p style="font-size: 0.9rem;">Classify findings objectively into Confirmed, Potential, Inconclusive, or Simulated states.</p>
+      </div>
+      <div class="cyber-card">
+        <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan); margin-bottom: 0.5rem;">05. Remediate</div>
+        <p style="font-size: 0.9rem;">Apply atomic code fixes, capture before/after states, and re-verify remediation outcome.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- All 10 Test Modules Catalog -->
+  <section id="test-catalog" style="margin: 4rem 0;" aria-labelledby="catalog-heading">
+    <div style="text-align: center; margin-bottom: 2.5rem;">
+      <h2 id="catalog-heading" style="margin-bottom: 0.5rem;">The Ten Web Security Checks</h2>
+      <p>Standardized tests from the Web Security Testing browser methodology.</p>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="cyber-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.15rem;">01. Robots.txt Enumeration</h3>
+          <span class="badge badge-info">Information Disclosure</span>
+        </div>
+        <p style="font-size: 0.875rem;">Discovering hidden endpoints and sensitive folders disclosed in robots.txt without access control.</p>
+      </div>
+
+      <div class="cyber-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.15rem;">02. URL Parameter Tampering & IDOR</h3>
+          <span class="badge badge-critical">Broken Access Control</span>
+        </div>
+        <p style="font-size: 0.875rem;">Manipulating identifiers to access unauthorized records when server-side authorization checks are missing.</p>
+      </div>
+
+      <div class="cyber-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.15rem;">03. Directory Guessing / Forced Browsing</h3>
+          <span class="badge badge-high">Access Control</span>
+        </div>
+        <p style="font-size: 0.875rem;">Directly browsing predictable administrative, diagnostic, or backup resources without authorization.</p>
+      </div>
+
+      <div class="cyber-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.15rem;">04. Cookie Inspection</h3>
+          <span class="badge badge-high">Session Management</span>
+        </div>
+        <p style="font-size: 0.875rem;">Verifying security flags: HttpOnly prevents XSS theft, Secure enforces HTTPS, and SameSite blocks CSRF.</p>
+      </div>
+
+      <div class="cyber-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.15rem;">05. HTTPS & Certificate Check</h3>
+          <span class="badge badge-medium">Transport Security</span>
+        </div>
+        <p style="font-size: 0.875rem;">Checking TLS certificate validity, cryptographic cipher suites, and automatic plaintext HTTP redirection.</p>
+      </div>
+
+      <div class="cyber-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.15rem;">06. Form Input Validation & XSS Awareness</h3>
+          <span class="badge badge-high">Injection Defense</span>
+        </div>
+        <p style="font-size: 0.875rem;">Auditing client vs. server-side input sanitization, HTML entity encoding, and Content-Security-Policy.</p>
+      </div>
+
+      <div class="cyber-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.15rem;">07. Inspect Page Source & Client-Side Code</h3>
+          <span class="badge badge-high">Sensitive Exposure</span>
+        </div>
+        <p style="font-size: 0.875rem;">Uncovering hardcoded API keys, developer comments, and sensitive internal endpoints in client assets.</p>
+      </div>
+
+      <div class="cyber-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.15rem;">08. Network Tab: What Is the Site Sending?</h3>
+          <span class="badge badge-medium">Data Minimization</span>
+        </div>
+        <p style="font-size: 0.875rem;">Analyzing REST API payloads for over-fetching and excessive personal data disclosure.</p>
+      </div>
+
+      <div class="cyber-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.15rem;">09. Default & Weak Credential Testing</h3>
+          <span class="badge badge-critical">Identification & Auth</span>
+        </div>
+        <p style="font-size: 0.875rem;">Testing default accounts, weak complexity rules, and lockout enforcement against brute force.</p>
+      </div>
+
+      <div class="cyber-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.15rem;">10. Error Message Analysis</h3>
+          <span class="badge badge-low">Information Disclosure</span>
+        </div>
+        <p style="font-size: 0.875rem;">Evaluating unhandled exceptions to prevent stack trace leaks, database schemas, and absolute system paths.</p>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

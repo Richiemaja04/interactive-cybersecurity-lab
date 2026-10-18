@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive Cybersecurity Lab — Browser-based web security testing, controlled vulnerability demonstration, and remediation verification.">
+  <title>{% block title %}Interactive Cybersecurity Lab{% endblock %} — Learn. Test. Verify. Secure.</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Design System CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <!-- WCAG Skip to Main Content Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Top Navigation Landmark -->
+  <header>
+    <nav class="navbar" aria-label="Main Navigation">
+      <div class="container nav-wrapper">
+        <a href="{{ url_for('landing.index') }}" class="brand-logo" aria-label="Interactive Cybersecurity Lab Homepage">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+          <div>
+            <div>CyberSec Lab</div>
+            <div class="brand-tagline">Learn. Test. Verify. Secure.</div>
+          </div>
+        </a>
+
+        <ul class="nav-links" role="menubar">
+          <li role="none"><a role="menuitem" class="nav-link" href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+          <li role="none"><a role="menuitem" class="nav-link" href="{{ url_for('reports.index') }}">Reports</a></li>
+          <li role="none"><a role="menuitem" class="nav-link" href="{{ url_for('presets.index') }}">Presets</a></li>
+          <li role="none"><a role="menuitem" class="nav-link" href="{{ url_for('ir.index') }}">Incident Response</a></li>
+          {% if current_user.is_authenticated and current_user.is_administrator %}
+            <li role="none"><a role="menuitem" class="nav-link" href="{{ url_for('admin.index') }}">Admin Panel</a></li>
+            <li role="none"><a role="menuitem" class="nav-link" href="{{ url_for('audit.index') }}">Audit Log</a></li>
+          {% endif %}
+        </ul>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          {% if current_user.is_authenticated %}
+            <div class="user-badge" aria-label="Current logged-in user profile">
+              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green);"></span>
+              <span><strong>{{ current_user.username }}</strong> ({{ current_user.role.value|capitalize }})</span>
+            </div>
+            <form action="{{ url_for('auth.logout') }}" method="POST" style="margin: 0;">
+              {% if csrf_token %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              {% endif %}
+              <button type="submit" class="btn btn-secondary" style="padding: 0.4rem 0.85rem; font-size: 0.85rem;">Sign Out</button>
+            </form>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary" style="padding: 0.45rem 1rem; font-size: 0.875rem;">Sign In</a>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Flash Messages & Live Region for Accessibility -->
+  <div class="container" style="margin-top: 1.5rem;" aria-live="polite" aria-atomic="true">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'error' if category == 'error' else 'success' if category == 'success' else 'info' }}" role="alert">
+            <span aria-hidden="true">
+              {% if category == 'error' %}⚠️{% elif category == 'success' %}✅{% else %}ℹ️{% endif %}
+            </span>
+            <div>{{ message }}</div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content Landmark -->
+  <main id="main-content" class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer Landmark -->
+  <footer class="footer">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <strong>Interactive Cybersecurity Lab</strong> · Learn. Test. Verify. Secure.
+        <div style="font-size: 0.8rem; margin-top: 0.25rem;">Educational & verification platform for 10 browser-based web security checks.</div>
+      </div>
+      <div style="display: flex; gap: 1.5rem; align-items: center;">
+        <span class="badge badge-info" style="text-transform: none;">Safe-Testing Mode Active</span>
+        <a href="/health" style="font-size: 0.85rem;">System Health</a>
+      </div>
+    </div>
+  </footer>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

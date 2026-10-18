@@ -1,0 +1,71 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+.installed.cfg
+lib/
+lib64/
+.Python
+
+# === Virtual environments ===
+.venv/
+venv/
+ENV/
+env/
+
+# === Flask / App ===
+instance/
+.webassets-cache
+*.db
+*.sqlite3
+
+# === Environment / Secrets ===
+.env
+.env.*
+!.env.example
+
+# === Migrations (keep versioned migrations, ignore local cache) ===
+migrations/__pycache__/
+
+# === Testing ===
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+test-results/
+
+# === IDE / Editor ===
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.sw?
+*.swp
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Reports / Generated files ===
+app/static/reports/
+*.pdf
+
+# === Dependency audit ===
+pip-audit-report.json

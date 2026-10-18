@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Guided Sequences — Interactive Cybersecurity Lab{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--accent-cyan); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+        Instructor & Demonstration Mode
+      </div>
+      <h1 style="font-size: 2rem; margin: 0 0 0.5rem 0;">Guided Presentation Sequences</h1>
+      <p style="color: var(--text-muted); margin: 0; font-size: 1rem;">
+        Step-by-step walkthroughs designed for live classroom and conference demonstrations.
+      </p>
+    </div>
+
+    <div>
+      <a href="{{ url_for('readiness.index') }}" class="btn btn-secondary" style="font-size: 0.875rem;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        Run Readiness Check
+      </a>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    {% for seq in sequences %}
+      <div class="cyber-card" style="background: var(--bg-surface); border: 1px solid var(--border-accent);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+              <h2 style="font-size: 1.35rem; margin: 0;">{{ seq.name }}</h2>
+              {% if seq.is_default %}
+                <span class="badge badge-info">Default 10-Check Sequence</span>
+              {% endif %}
+            </div>
+            <p style="font-size: 0.95rem; color: var(--text-muted); margin: 0; max-width: 800px;">
+              {{ seq.description }}
+            </p>
+          </div>
+
+          <div>
+            <a href="{{ url_for('sequences.present', sequence_id=seq.id) }}" class="btn btn-primary" style="font-size: 0.9rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Launch Guided Mode
+            </a>
+          </div>
+        </div>
+
+        <!-- Sequence Steps Overview Pills -->
+        <div style="border-top: 1px solid var(--border-subtle); padding-top: 1rem; margin-top: 1rem;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem;">
+            Presentation Sequence Outline ({{ seq.steps|length }} Steps):
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+            {% for step in seq.steps %}
+              <a href="{{ url_for('sequences.present', sequence_id=seq.id, step=step.step_order) }}" class="badge badge-info" style="text-decoration: none; padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+                <strong>{{ step.step_order }}.</strong> {{ step.test_definition.name }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

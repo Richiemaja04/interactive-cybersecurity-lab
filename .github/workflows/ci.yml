@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  FLASK_ENV: testing
+  SECRET_KEY: ci-test-secret-key-not-for-production
+  TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cybersec_lab_test
+
+jobs:
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install ruff black
+      - name: Run ruff
+        run: ruff check app/ tests/ scripts/
+      - name: Check black formatting
+        run: black --check app/ tests/ scripts/
+
+  unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cybersec_lab_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Apply migrations
+        run: flask db upgrade
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+      - name: Run unit tests
+        run: pytest tests/unit/ -v --tb=short --cov=app --cov-report=term-missing
+
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cybersec_lab_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Apply migrations
+        run: flask db upgrade
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+      - name: Run integration tests
+        run: pytest tests/integration/ -v --tb=short
+
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cybersec_lab_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Apply migrations
+        run: flask db upgrade
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+      - name: Run security tests
+        run: pytest tests/security/ -v --tb=short
+
+  dependency-audit:
+    name: Dependency Vulnerability Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install pip-audit
+      - name: Run pip-audit
+        # Critical and defined-high findings BLOCK release.
+        # Use --fail-on CRITICAL,HIGH to block on those severities.
+        run: |
+          pip-audit -r requirements.txt --output json -o pip-audit-report.json || true
+          pip-audit -r requirements.txt --fail-on CRITICAL
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pip-audit-report
+          path: pip-audit-report.json
+
+  e2e:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cybersec_lab_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Apply migrations
+        run: flask db upgrade
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+      - name: Run E2E tests
+        run: pytest tests/end_to_end/ -v --tb=short

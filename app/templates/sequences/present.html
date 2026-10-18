@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Step {{ step_num }}/{{ total_steps }}: {{ test_def.name }} — Guided Presentation{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Top Presenter Bar & Progress Track -->
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-accent); border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.75rem;">
+      <div>
+        <span style="font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan);">
+          GUIDED DEMO: STEP {{ step_num }} OF {{ total_steps }}
+        </span>
+        <h1 style="font-size: 1.5rem; margin: 0.15rem 0 0 0;">{{ test_def.name }}</h1>
+      </div>
+
+      <!-- Quick Step Navigation Jump -->
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        {% if step_num > 1 %}
+          <a href="{{ url_for('sequences.present', sequence_id=sequence.id, step=step_num - 1) }}" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.85rem;">
+            &larr; Previous Step
+          </a>
+        {% endif %}
+
+        {% if step_num < total_steps %}
+          <a href="{{ url_for('sequences.present', sequence_id=sequence.id, step=step_num + 1) }}" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.4rem 0.85rem;">
+            Next Step &rarr;
+          </a>
+        {% else %}
+          <a href="{{ url_for('sequences.index') }}" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.85rem;">
+            Finish Walkthrough 🏁
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Visual Step Progress Tracker -->
+    <div style="display: flex; gap: 0.35rem; margin-top: 0.5rem;" role="progressbar" aria-valuenow="{{ step_num }}" aria-valuemin="1" aria-valuemax="{{ total_steps }}">
+      {% for i in range(1, total_steps + 1) %}
+        <a href="{{ url_for('sequences.present', sequence_id=sequence.id, step=i) }}" 
+           style="flex: 1; height: 6px; border-radius: 3px; background: {{ 'var(--accent-cyan)' if i == step_num else 'var(--status-secure)' if i < step_num else 'var(--border-subtle)' }}; transition: background 0.2s;"
+           title="Step {{ i }}"></a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="gap: 2rem; margin-bottom: 2rem;">
+    <!-- Left Column: Security Concept & Interactive Controls -->
+    <div>
+      <!-- Objective & Concept Card -->
+      <div class="cyber-card" style="margin-bottom: 1.5rem; background: var(--bg-surface);">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <span class="badge badge-info">{{ test_def.category }}</span>
+          <span class="badge {{ 'badge-vuln' if scenario.state.value == 'vulnerable' else 'badge-secure' }}">
+            Scenario: {{ scenario.state.value|upper }}
+          </span>
+        </div>
+        <h2 style="font-size: 1.25rem; margin: 0 0 0.5rem 0;">Instructional Objective</h2>
+        <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; margin: 0 0 1rem 0;">
+          {{ test_def.objective }}
+        </p>
+
+        <div style="border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+          <h3 style="font-size: 1rem; color: var(--accent-cyan); margin: 0 0 0.35rem 0;">Core Principle</h3>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+            {{ test_def.concept }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Panel: Execute Check & Toggle Scenario -->
+      <div class="cyber-card" style="margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.15rem; margin-top: 0; margin-bottom: 1rem;">Step Actions & Live Execution</h2>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <form action="{{ url_for('sequences.execute_step', sequence_id=sequence.id, step_order=step_num) }}" method="POST" style="margin: 0;">
+            {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+            <button type="submit" class="btn btn-primary" style="font-size: 0.875rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Execute Check on Step {{ step_num }}
+            </button>
+          </form>
+
+          <a href="{{ url_for(test_def.slug.replace('-', '_') + '.detail') if test_def.slug != 'robots-txt' else url_for('robots_txt.detail') }}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="font-size: 0.875rem;">
+            Inspect Full Lab View &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Latest Execution Result (if present) -->
+      {% if latest_run %}
+        <div class="cyber-card" style="border-left: 4px solid var(--accent-cyan); background: var(--bg-surface);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <div style="font-weight: 700; font-size: 0.9rem; text-transform: uppercase; color: var(--accent-cyan);">
+              Latest Run Verification Outcome (Run #{{ latest_run.id }})
+            </div>
+            <span class="badge {{ 'badge-secure' if latest_run.state.value == 'completed' else 'badge-vuln' }}">
+              {{ latest_run.state.value|capitalize }}
+            </span>
+          </div>
+
+          {% set run_finding = latest_run.findings.first() %}
+          {% if run_finding %}
+            <div style="margin-top: 0.5rem;">
+              <div style="font-size: 1.05rem; font-weight: 700; color: var(--severity-high); margin-bottom: 0.25rem;">
+                {{ run_finding.title }}
+              </div>
+              <div style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5;">
+                {{ run_finding.description }}
+              </div>
+            </div>
+          {% else %}
+            <div style="font-size: 0.9rem; color: var(--status-secure); margin-top: 0.25rem;">
+              🛡️ No vulnerability detected in current scenario configuration.
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Column: Presenter Notes & Talking Points Drawer -->
+    <div>
+      {% if presenter_notes %}
+        <div class="cyber-card" style="border: 1px solid var(--border-accent); background: var(--bg-surface);">
+          <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--accent-green); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+            Instructor Guide & Live Demonstration Script
+          </div>
+          <h2 style="font-size: 1.3rem; margin: 0 0 1rem 0;">Presenter Notes</h2>
+
+          <!-- Demonstration Steps -->
+          <div style="margin-bottom: 1.25rem;">
+            <div style="font-weight: 700; font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 0.4rem;">
+              Live Walkthrough Actions:
+            </div>
+            <ol style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+              {% for step in presenter_notes.demonstration_steps %}
+                <li>{{ step }}</li>
+              {% endfor %}
+            </ol>
+          </div>
+
+          <!-- Key Talking Points -->
+          <div style="margin-bottom: 1.25rem;">
+            <div style="font-weight: 700; font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 0.4rem;">
+              Audience Talking Points:
+            </div>
+            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+              {% for tp in presenter_notes.talking_points %}
+                <li>{{ tp }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- Evidence Meaning & Remediation Takeaway -->
+          <div style="background: var(--bg-deep); border-radius: 6px; padding: 1rem; border: 1px solid var(--border-subtle);">
+            <div style="font-weight: 600; font-size: 0.85rem; color: var(--accent-green); text-transform: uppercase; margin-bottom: 0.25rem;">
+              Remediation Takeaway:
+            </div>
+            <div style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5;">
+              {{ presenter_notes.remediation_takeaway }}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

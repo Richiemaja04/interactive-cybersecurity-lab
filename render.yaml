@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: cybersec-lab
+    env: python
+    region: oregon
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn "app:create_app()" --workers 2 --timeout 120 --bind 0.0.0.0:$PORT
+    healthCheckPath: /health
+    preDeployCommand: flask db upgrade
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cybersec-lab-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: EXTERNAL_TARGETS_ENABLED
+        value: "false"
+      - key: SESSION_LIFETIME_SECONDS
+        value: "3600"
+      - key: LOG_LEVEL
+        value: WARNING
+      - key: REPORT_OUTPUT_DIR
+        value: instance/reports
+
+databases:
+  - name: cybersec-lab-db
+    plan: starter
+    databaseName: cybersec_lab
+    databaseUser: cybersec_lab_user

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Run #{{ run.id }}: {{ test_def.name }} — Interactive Cybersecurity Lab{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Breadcrumb -->
+  <nav aria-label="Breadcrumb" style="margin-bottom: 1.5rem;">
+    <ol style="display: flex; gap: 0.5rem; list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+      <li><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+      <li>/</li>
+      <li><a href="{{ url_for(test_slug_url + '.detail') }}">Test {{ test_def.number }}: {{ test_def.name }}</a></li>
+      <li>/</li>
+      <li style="color: var(--text-primary); font-weight: 600;">Execution Run #{{ run.id }}</li>
+    </ol>
+  </nav>
+
+  <!-- Run Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+        <span class="badge badge-info" style="font-family: var(--font-mono); font-weight: 700;">TEST {{ test_def.number }}</span>
+        <span class="badge {{ 'badge-secure' if run.state.value == 'completed' else 'badge-vuln' if run.state.value == 'failed' else 'badge-info' }}">
+          Run State: {{ run.state.value|capitalize }}
+        </span>
+        <span class="badge badge-info">Scenario v{{ run.scenario_version_at_run }}</span>
+      </div>
+      <h1 style="font-size: 2rem; margin: 0 0 0.5rem 0;">Execution Run #{{ run.id }} Details</h1>
+      <div style="font-size: 0.9rem; color: var(--text-muted);">
+        Executed on {{ run.started_at.strftime('%Y-%m-%d %H:%M:%S UTC') if run.started_at else '—' }} by <strong>{{ run.user.username }}</strong>
+      </div>
+    </div>
+
+    <div>
+      <a href="{{ url_for(test_slug_url + '.detail') }}" class="btn btn-secondary" style="font-size: 0.875rem;">
+        &larr; Back to Test {{ test_def.number }}
+      </a>
+    </div>
+  </div>
+
+  <!-- Simulated Banner if simulated -->
+  {% set has_sim = evidence_records|selectattr("is_simulated", "equalto", true)|list %}
+  {% if has_sim %}
+    <div class="alert alert-info" style="border: 2px dashed var(--status-simulated); background: rgba(255, 170, 0, 0.1); margin-bottom: 2rem;">
+      <span aria-hidden="true">⚠️</span>
+      <div>
+        <strong>[SIMULATED EVIDENCE REPLAY]</strong>
+        This run contains simulated evidence records. Simulated evidence is strictly labeled and never yields a 'Confirmed' verification status.
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Finding Overview Card -->
+  {% if findings %}
+    {% set finding = findings[0] %}
+    <div class="cyber-card {{ 'vulnerable-border' if finding.severity.value in ['critical', 'high'] else '' }}" style="margin-bottom: 2rem; background: var(--bg-surface);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+            Identified Security Finding
+          </div>
+          <h2 style="font-size: 1.4rem; margin: 0; color: {{ 'var(--severity-critical)' if finding.severity.value == 'critical' else 'var(--severity-high)' if finding.severity.value == 'high' else 'var(--severity-medium)' if finding.severity.value == 'medium' else 'var(--severity-low)' }};">
+            {{ finding.title }}
+          </h2>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <!-- Severity badge -->
+          <span class="badge {{ 'badge-vuln' if finding.severity.value in ['critical', 'high'] else 'badge-info' }}">
+            Severity: {{ finding.severity.value|upper }}
+          </span>
+          <!-- Confidence badge -->
+          <span class="badge badge-info">
+            Confidence: {{ finding.confidence.value|upper }}
+          </span>
+          <!-- Verification Status badge -->
+          <span class="badge {{ 'badge-vuln' if finding.verification_status.value == 'confirmed' else 'badge-sim' if finding.verification_status.value == 'simulated' else 'badge-info' }}">
+            Status: {{ finding.verification_status.value|upper }}
+          </span>
+        </div>
+      </div>
+
+      <p style="font-size: 0.95rem; color: var(--text-primary); line-height: 1.6; margin-bottom: 1.5rem;">
+        {{ finding.description }}
+      </p>
+
+      {% if finding.remediation_summary %}
+        <div style="background: var(--bg-deep); border-left: 3px solid var(--accent-green); border-radius: 4px; padding: 1rem; margin-top: 1rem;">
+          <div style="font-weight: 600; font-size: 0.85rem; color: var(--accent-green); text-transform: uppercase; margin-bottom: 0.25rem;">
+            Recommended Remediation
+          </div>
+          <div style="font-size: 0.9rem; color: var(--text-muted);">
+            {{ finding.remediation_summary }}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="cyber-card" style="margin-bottom: 2rem; border-left: 4px solid var(--status-secure); background: var(--bg-surface);">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span style="font-size: 1.5rem;" aria-hidden="true">🛡️</span>
+        <div>
+          <h2 style="font-size: 1.2rem; margin: 0; color: var(--status-secure);">No Vulnerability Detected (Clean Scenario)</h2>
+          <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-muted);">
+            The execution verified that expected security controls, authorization boundaries, and defense-in-depth mechanisms are correctly enforced.
+          </p>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Evidence Records Section -->
+  <h2 style="font-size: 1.35rem; margin-bottom: 1rem;">Captured Technical Evidence ({{ evidence_records|length }})</h2>
+
+  <div style="display: flex; flex-direction: column; gap: 1.25rem; margin-bottom: 2.5rem;">
+    {% for ev in evidence_records %}
+      <div class="cyber-card" style="background: var(--bg-surface); border: 1px solid var(--border-accent);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <h3 style="font-size: 1.1rem; margin: 0;">{{ ev.title }}</h3>
+            <span class="badge badge-info">{{ ev.evidence_type.value }}</span>
+          </div>
+
+          <div style="display: flex; gap: 0.5rem;">
+            <span class="badge {{ 'badge-sim' if ev.is_simulated else 'badge-info' }}">
+              Provenance: {{ ev.provenance.value }}
+            </span>
+          </div>
+        </div>
+
+        {% if ev.observation %}
+          <div style="font-size: 0.9rem; color: var(--text-primary); margin-bottom: 1rem; line-height: 1.5;">
+            <strong>Observation:</strong> {{ ev.observation }}
+          </div>
+        {% endif %}
+
+        <!-- Sanitized Technical Detail JSON Viewer -->
+        <div>
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem;">
+            Sanitized Detail Payload (Credential-Redacted)
+          </div>
+          <pre style="background: var(--bg-deep); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 1rem; font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-cyan); overflow-x: auto; margin: 0;">{{ ev.sanitized_detail | tojson(indent=2) }}</pre>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Execution Events Audit Trail -->
+  <details class="cyber-card" style="margin-bottom: 2rem;">
+    <summary style="cursor: pointer; font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">
+      Lifecycle Execution Events Audit Trail ({{ events|length }})
+    </summary>
+    <div style="margin-top: 1rem;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-subtle); text-align: left; color: var(--text-muted);">
+            <th style="padding: 0.5rem;">Timestamp</th>
+            <th style="padding: 0.5rem;">Event Type</th>
+            <th style="padding: 0.5rem;">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ev in events %}
+            <tr style="border-bottom: 1px solid var(--border-subtle);">
+              <td style="padding: 0.5rem; font-family: var(--font-mono); color: var(--text-muted);">
+                {{ ev.timestamp.strftime('%H:%M:%S.%f')[:-3] }}
+              </td>
+              <td style="padding: 0.5rem; font-weight: 600;">{{ ev.event_type }}</td>
+              <td style="padding: 0.5rem; color: var(--text-muted);">{{ ev.detail | tojson if ev.detail else '—' }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </details>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Remediation Center — Interactive Cybersecurity Lab{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="margin-bottom: 2rem;">
+    <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--accent-green); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+      Remediation & Verification Workflow
+    </div>
+    <h1 style="font-size: 2rem; margin: 0 0 0.5rem 0;">Remediation Action Audit Log</h1>
+    <p style="color: var(--text-muted); margin: 0; font-size: 1rem;">
+      Track atomic code and configuration changes applied to resolve findings, with linear version snapshots and safe reversal.
+    </p>
+  </div>
+
+  <div class="cyber-card" style="background: var(--bg-surface);">
+    <h2 style="font-size: 1.25rem; margin-top: 0; margin-bottom: 1rem;">Applied Remediation Actions</h2>
+
+    {% if actions %}
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-subtle); text-align: left; color: var(--text-muted);">
+              <th style="padding: 0.75rem 0.5rem;">Action ID</th>
+              <th style="padding: 0.75rem 0.5rem;">Finding</th>
+              <th style="padding: 0.75rem 0.5rem;">Fix Name</th>
+              <th style="padding: 0.75rem 0.5rem;">Scenario Version</th>
+              <th style="padding: 0.75rem 0.5rem;">Outcome</th>
+              <th style="padding: 0.75rem 0.5rem;">Applied At</th>
+              <th style="padding: 0.75rem 0.5rem; text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in actions %}
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono);">#{{ a.id }}</td>
+                <td style="padding: 0.75rem 0.5rem; font-weight: 600;">
+                  Finding #{{ a.finding_id }}: {{ a.finding.title if a.finding else '—' }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); color: var(--accent-cyan);">
+                  {{ a.fix_name }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem;">v{{ a.scenario_version_at_action }}</td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  <span class="badge {{ 'badge-secure' if a.outcome.value == 'resolved' else 'badge-vuln' }}">
+                    {{ a.outcome.value|capitalize }}
+                  </span>
+                </td>
+                <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">
+                  {{ a.applied_at.strftime('%Y-%m-%d %H:%M UTC') }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; text-align: right;">
+                  {% if not a.is_reversal and a.outcome.value == 'resolved' %}
+                    <form action="{{ url_for('remediation.reverse_fix', action_id=a.id) }}" method="POST" style="margin: 0; display: inline;">
+                      {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+                      <input type="hidden" name="expected_version" value="{{ a.scenario_version_at_action + 1 }}">
+                      <button type="submit" class="btn btn-secondary" style="padding: 0.25rem 0.65rem; font-size: 0.8rem;" onclick="return confirm('Reverse this remediation and restore vulnerable behavior?');">
+                        Reverse Fix
+                      </button>
+                    </form>
+                  {% else %}
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">{{ 'Reversed' if a.is_reversal else 'Final' }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="padding: 2.5rem; text-align: center; color: var(--text-muted); background: var(--bg-deep); border-radius: 6px;">
+        No remediation actions recorded yet. View run findings on individual test pages to apply fixes.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

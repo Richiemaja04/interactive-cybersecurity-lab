@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Incident Response Simulation — Interactive Cybersecurity Lab{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Prominent Simulated Incident Header Banner -->
+  <div class="alert alert-info" style="border: 2px dashed var(--status-simulated); background: rgba(255, 170, 0, 0.08); margin-bottom: 2rem;">
+    <span aria-hidden="true" style="font-size: 1.5rem;">⚠️</span>
+    <div>
+      <div style="font-size: 1.1rem; font-weight: 800; color: var(--status-simulated);">
+        [SIMULATED INCIDENT EXERCISE] — IR-2026-08
+      </div>
+      <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">
+        This is a controlled training scenario demonstrating the 5-stage triage lifecycle. No live production alert or actual platform compromise has occurred.
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 2rem;">
+    <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--accent-cyan); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+      Security Operations Center Workflow
+    </div>
+    <h1 style="font-size: 2rem; margin: 0 0 0.5rem 0;">5-Step Incident Response Walkthrough</h1>
+    <p style="color: var(--text-muted); margin: 0; font-size: 1rem;">
+      Walk through incident triage from anomaly detection to verified containment.
+    </p>
+  </div>
+
+  <!-- Stage Progress Tabs -->
+  <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap;" role="tablist">
+    {% for s in stages %}
+      <a href="{{ url_for('ir.index', step=s.step) }}" 
+         class="btn {{ 'btn-primary' if s.step == current_step else 'btn-secondary' }}" 
+         style="font-size: 0.85rem; padding: 0.5rem 1rem; text-decoration: none;">
+        <strong>Step {{ s.step }}:</strong> {{ s.name }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- Stage Card -->
+  <div class="cyber-card" style="background: var(--bg-surface); border: 1px solid var(--border-accent); margin-bottom: 2rem;">
+    {% if current_step == 1 %}
+      <!-- STEP 1: IDENTIFY -->
+      <span class="badge badge-info" style="margin-bottom: 0.5rem;">STAGE 1: IDENTIFY</span>
+      <h2 style="font-size: 1.5rem; margin: 0 0 1rem 0;">Detect & Characterize Anomaly</h2>
+      <p style="font-size: 1rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">
+        An alert was triggered by automated payload anomaly detection: unusual volume of outbound PII fields detected on API endpoint <code>/api/lab/employees/101</code>.
+      </p>
+
+      <div style="background: var(--bg-deep); border-left: 4px solid var(--severity-high); padding: 1.25rem; border-radius: 6px; margin-bottom: 1.5rem;">
+        <div style="font-weight: 700; font-size: 0.9rem; color: var(--severity-high); margin-bottom: 0.5rem;">
+          Triage Ingestion Payload:
+        </div>
+        <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+          <li><strong>Alert Source:</strong> DLP Gateway & WAF Log Stream</li>
+          <li><strong>Target Endpoint:</strong> <code>GET /api/lab/employees/101</code></li>
+          <li><strong>Anomaly Flag:</strong> Sensitive attributes (<code>ssn</code>, <code>salary</code>, <code>home_address</code>) serialized in response body</li>
+          <li><strong>Potential Severity:</strong> High (Confidentiality Impact)</li>
+        </ul>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end;">
+        <a href="{{ url_for('ir.index', step=2) }}" class="btn btn-primary">
+          Proceed to Step 2: Inspect Evidence &rarr;
+        </a>
+      </div>
+
+    {% elif current_step == 2 %}
+      <!-- STEP 2: INSPECT -->
+      <span class="badge badge-info" style="margin-bottom: 0.5rem;">STAGE 2: INSPECT</span>
+      <h2 style="font-size: 1.5rem; margin: 0 0 1rem 0;">Examine Captured Technical Evidence</h2>
+      <p style="font-size: 1rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">
+        Security engineers inspect network telemetry and verify the API endpoint's response payload in browser DevTools Network tab.
+      </p>
+
+      <div style="margin-bottom: 1.5rem;">
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+          Raw Network Inspection Payload:
+        </div>
+        <pre style="background: var(--bg-deep); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 1rem; font-family: var(--font-mono); font-size: 0.85rem; color: var(--severity-critical); overflow-x: auto;">
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+  "id": 101,
+  "full_name": "Alex Taylor",
+  "department": "Security Architecture",
+  "salary": 140000,
+  "ssn": "999-XX-0101",
+  "internal_clearance": "TopSecret",
+  "home_address": "42 Cyber Way, Suite 300, Neo City"
+}
+        </pre>
+      </div>
+
+      <div style="display: flex; justify-content: space-between;">
+        <a href="{{ url_for('ir.index', step=1) }}" class="btn btn-secondary">&larr; Back: Step 1</a>
+        <a href="{{ url_for('ir.index', step=3) }}" class="btn btn-primary">Proceed to Step 3: Assess Impact &rarr;</a>
+      </div>
+
+    {% elif current_step == 3 %}
+      <!-- STEP 3: ASSESS -->
+      <span class="badge badge-info" style="margin-bottom: 0.5rem;">STAGE 3: ASSESS</span>
+      <h2 style="font-size: 1.5rem; margin: 0 0 1rem 0;">Determine Impact & Scope</h2>
+      <p style="font-size: 1rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">
+        Perform threat modeling and regulatory assessment regarding unauthorized data exposure.
+      </p>
+
+      <div class="grid grid-3" style="gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="background: var(--bg-deep); padding: 1rem; border-radius: 6px; border: 1px solid var(--border-subtle);">
+          <div style="font-weight: 700; font-size: 0.85rem; color: var(--severity-high); margin-bottom: 0.25rem;">CONFIDENTIALITY</div>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--severity-critical);">HIGH</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">PII and executive compensation leaked over wire.</div>
+        </div>
+
+        <div style="background: var(--bg-deep); padding: 1rem; border-radius: 6px; border: 1px solid var(--border-subtle);">
+          <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">INTEGRITY</div>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--accent-green);">NONE</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">No unauthorized record modification occurred.</div>
+        </div>
+
+        <div style="background: var(--bg-deep); padding: 1rem; border-radius: 6px; border: 1px solid var(--border-subtle);">
+          <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">AVAILABILITY</div>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--accent-green);">NONE</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Services remain operational and responsive.</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between;">
+        <a href="{{ url_for('ir.index', step=2) }}" class="btn btn-secondary">&larr; Back: Step 2</a>
+        <a href="{{ url_for('ir.index', step=4) }}" class="btn btn-primary">Proceed to Step 4: Remediate &rarr;</a>
+      </div>
+
+    {% elif current_step == 4 %}
+      <!-- STEP 4: REMEDIATE -->
+      <span class="badge badge-info" style="margin-bottom: 0.5rem;">STAGE 4: REMEDIATE</span>
+      <h2 style="font-size: 1.5rem; margin: 0 0 1rem 0;">Apply Targeted Containment & Fix</h2>
+      <p style="font-size: 1rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">
+        Deploy server-side response serialization schema (DTO filter) to eliminate over-fetching at the controller level.
+      </p>
+
+      <div style="background: var(--bg-deep); border-left: 4px solid var(--accent-green); padding: 1.25rem; border-radius: 6px; margin-bottom: 1.5rem;">
+        <div style="font-weight: 700; font-size: 0.9rem; color: var(--accent-green); margin-bottom: 0.5rem;">
+          Applied Engineering Remediation Patch:
+        </div>
+        <pre style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-green); margin: 0;">
+# Server-side Data Transfer Object (DTO) schema filter
+def serialize_employee_public(emp: Employee) -> dict:
+    return {
+        "id": emp.id,
+        "full_name": emp.full_name,
+        "department": emp.department,
+        # salary, ssn, clearance strictly omitted
+    }
+        </pre>
+      </div>
+
+      <div style="display: flex; justify-content: space-between;">
+        <a href="{{ url_for('ir.index', step=3) }}" class="btn btn-secondary">&larr; Back: Step 3</a>
+        <a href="{{ url_for('ir.index', step=5) }}" class="btn btn-primary">Proceed to Step 5: Verify Recovery &rarr;</a>
+      </div>
+
+    {% elif current_step == 5 %}
+      <!-- STEP 5: VERIFY -->
+      <span class="badge badge-secure" style="margin-bottom: 0.5rem;">STAGE 5: VERIFY</span>
+      <h2 style="font-size: 1.5rem; margin: 0 0 1rem 0;">Validate Recovery & Residual Risk</h2>
+      <p style="font-size: 1rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">
+        Execute verification probes against the endpoint to confirm complete remediation without regression.
+      </p>
+
+      <div style="background: rgba(0, 255, 136, 0.08); border: 1px solid var(--status-secure); border-radius: 6px; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="font-weight: 700; color: var(--status-secure); margin-bottom: 0.5rem;">
+          Verification Probe Successful:
+        </div>
+        <pre style="background: var(--bg-deep); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 0.75rem; font-family: var(--font-mono); font-size: 0.85rem; color: var(--status-secure); margin: 0;">
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+  "id": 101,
+  "full_name": "Alex Taylor",
+  "department": "Security Architecture"
+}
+        </pre>
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0.75rem 0 0 0;">
+          All sensitive fields successfully eliminated from client payload. Zero residual exposure.
+        </p>
+      </div>
+
+      <div style="display: flex; justify-content: space-between;">
+        <a href="{{ url_for('ir.index', step=4) }}" class="btn btn-secondary">&larr; Back: Step 4</a>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">Return to Operations Dashboard &rarr;</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Rehearsal & Fault Injection — Interactive Cybersecurity Lab{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--status-simulated); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+        Resilience & Demo Preparation
+      </div>
+      <h1 style="font-size: 2rem; margin: 0 0 0.5rem 0;">Rehearsal Mode & Fault Injection</h1>
+      <p style="color: var(--text-muted); margin: 0; font-size: 1rem;">
+        Practice responding to unexpected component timeouts and degradation in an isolated sandbox session.
+      </p>
+    </div>
+
+    <div>
+      {% if active_session %}
+        <form action="{{ url_for('rehearsal.end_session') }}" method="POST" style="margin: 0;">
+          {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+          <button type="submit" class="btn btn-secondary">
+            End Active Rehearsal Session
+          </button>
+        </form>
+      {% else %}
+        <form action="{{ url_for('rehearsal.start_session') }}" method="POST" style="margin: 0;">
+          {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+          <button type="submit" class="btn btn-primary">
+            Start New Rehearsal Session
+          </button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Session Status Banner -->
+  {% if active_session %}
+    <div class="alert alert-info" style="border: 2px dashed var(--status-simulated); background: rgba(255, 170, 0, 0.08); margin-bottom: 2rem;">
+      <span aria-hidden="true" style="font-size: 1.5rem;">🎭</span>
+      <div>
+        <div style="font-size: 1.1rem; font-weight: 800; color: var(--status-simulated);">
+          REHEARSAL SESSION #{{ active_session.id }} IS ACTIVE
+        </div>
+        <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">
+          Results recorded during this session are tagged as rehearsal and kept completely isolated from regular execution history.
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Fault Injection Control Panel -->
+  <div class="cyber-card" style="background: var(--bg-surface); margin-bottom: 2.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+      <h2 style="font-size: 1.25rem; margin: 0;">Controlled Fault Injections</h2>
+      <span class="badge badge-info">Zero Infrastructure Impact · Component-Level Sandbox</span>
+    </div>
+
+    {% if active_session %}
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for ft in fault_types %}
+          {% set fault_obj = active_session.faults|selectattr("fault_type.value", "equalto", ft)|first %}
+          {% set is_on = fault_obj and fault_obj.is_enabled %}
+          <div class="cyber-card" style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-deep); border: 1px solid {{ 'var(--status-simulated)' if is_on else 'var(--border-subtle)' }};">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <span style="font-family: var(--font-mono); font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">
+                  {{ ft }}
+                </span>
+                {% if is_on %}
+                  <span class="badge badge-sim">[SIMULATED FAULT ACTIVE]</span>
+                {% else %}
+                  <span class="badge badge-info">Disabled</span>
+                {% endif %}
+              </div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">
+                {% if ft == 'demo_service_unavailable' %}
+                  Forces lab execution requests to return HTTP 503 Service Unavailable.
+                {% elif ft == 'controlled_timeout' %}
+                  Injects artificial execution delay triggering the cooperative timeout handler.
+                {% elif ft == 'simulated_db_unavailable' %}
+                  Simulates a temporary database outage to test graceful read-only fallback mode.
+                {% elif ft == 'report_export_failure' %}
+                  Simulates PDF renderer subsystem failure to verify JSON fallback export.
+                {% endif %}
+              </div>
+            </div>
+
+            <form action="{{ url_for('rehearsal.toggle_fault') }}" method="POST" style="margin: 0;">
+              {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+              <input type="hidden" name="fault_type" value="{{ ft }}">
+              <button type="submit" class="btn {{ 'btn-secondary' if is_on else 'btn-primary' }}" style="font-size: 0.85rem; padding: 0.4rem 0.85rem;">
+                {{ 'Disable Fault' if is_on else 'Inject Fault' }}
+              </button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="padding: 2.5rem; text-align: center; color: var(--text-muted); background: var(--bg-deep); border-radius: 6px;">
+        Click <strong>Start New Rehearsal Session</strong> above to enable and practice with controlled fault injection.
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Past Sessions Table -->
+  <div class="cyber-card">
+    <h2 style="font-size: 1.25rem; margin-top: 0; margin-bottom: 1rem;">Past Rehearsal Sessions</h2>
+
+    {% if past_sessions %}
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-subtle); text-align: left; color: var(--text-muted);">
+              <th style="padding: 0.75rem 0.5rem;">Session ID</th>
+              <th style="padding: 0.75rem 0.5rem;">Started</th>
+              <th style="padding: 0.75rem 0.5rem;">Ended</th>
+              <th style="padding: 0.75rem 0.5rem;">Injected Faults</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ps in past_sessions %}
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono);">#{{ ps.id }}</td>
+                <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">{{ ps.started_at.strftime('%Y-%m-%d %H:%M UTC') }}</td>
+                <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">{{ ps.ended_at.strftime('%Y-%m-%d %H:%M UTC') if ps.ended_at else '—' }}</td>
+                <td style="padding: 0.75rem 0.5rem;">{{ ps.faults|length }} recorded</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="padding: 1.5rem; text-align: center; color: var(--text-muted); background: var(--bg-deep); border-radius: 6px;">
+        No completed rehearsal sessions recorded yet.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

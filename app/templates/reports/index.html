@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Report Center — Interactive Cybersecurity Lab{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="margin-bottom: 2rem;">
+    <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--accent-cyan); letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+      Audit & Verification Records
+    </div>
+    <h1 style="font-size: 2rem; margin: 0 0 0.5rem 0;">Assessment Reports & Exports</h1>
+    <p style="color: var(--text-muted); margin: 0; font-size: 1rem;">
+      Export executive summaries, technical findings, and sanitized evidence in PDF and structured JSON formats.
+    </p>
+  </div>
+
+  <!-- Available Test Executions to Export -->
+  <div class="cyber-card" style="margin-bottom: 2.5rem; background: var(--bg-surface);">
+    <h2 style="font-size: 1.25rem; margin-top: 0; margin-bottom: 1rem;">Recent Test Runs Ready for Export</h2>
+
+    {% if runs %}
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-subtle); text-align: left; color: var(--text-muted);">
+              <th style="padding: 0.75rem 0.5rem;">Run ID</th>
+              <th style="padding: 0.75rem 0.5rem;">Test Name</th>
+              <th style="padding: 0.75rem 0.5rem;">State</th>
+              <th style="padding: 0.75rem 0.5rem;">Finding</th>
+              <th style="padding: 0.75rem 0.5rem;">Executed At</th>
+              <th style="padding: 0.75rem 0.5rem; text-align: right;">Export Options</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in runs %}
+              {% set finding = r.findings.first() %}
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono);">#{{ r.id }}</td>
+                <td style="padding: 0.75rem 0.5rem; font-weight: 600;">
+                  Test {{ r.test_definition.number }}: {{ r.test_definition.name }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  <span class="badge {{ 'badge-secure' if r.state.value == 'completed' else 'badge-vuln' }}">
+                    {{ r.state.value|capitalize }}
+                  </span>
+                </td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  {% if finding %}
+                    <span style="color: {{ 'var(--severity-critical)' if finding.severity.value in ['critical', 'high'] else 'var(--severity-medium)' }};">
+                      {{ finding.title }} ({{ finding.verification_status.value }})
+                    </span>
+                  {% else %}
+                    <span style="color: var(--text-muted);">Clean</span>
+                  {% endif %}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">
+                  {{ r.started_at.strftime('%Y-%m-%d %H:%M UTC') if r.started_at else '—' }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; text-align: right;">
+                  <div style="display: inline-flex; gap: 0.5rem;">
+                    <a href="{{ url_for('reports.export_json', run_id=r.id) }}" class="btn btn-secondary" style="padding: 0.25rem 0.65rem; font-size: 0.8rem;">
+                      JSON
+                    </a>
+                    <a href="{{ url_for('reports.export_pdf', run_id=r.id) }}" class="btn btn-primary" style="padding: 0.25rem 0.65rem; font-size: 0.8rem;">
+                      PDF
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="padding: 2rem; text-align: center; color: var(--text-muted); background: var(--bg-deep); border-radius: 6px;">
+        No test runs recorded yet. Execute a security test from the <a href="{{ url_for('dashboard.index') }}">Dashboard</a> to generate assessment reports.
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Historical Exports Audit Log -->
+  <div class="cyber-card">
+    <h2 style="font-size: 1.25rem; margin-top: 0; margin-bottom: 1rem;">Archived Report Exports</h2>
+
+    {% if exports %}
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-subtle); text-align: left; color: var(--text-muted);">
+              <th style="padding: 0.75rem 0.5rem;">Export ID</th>
+              <th style="padding: 0.75rem 0.5rem;">File Name</th>
+              <th style="padding: 0.75rem 0.5rem;">Format</th>
+              <th style="padding: 0.75rem 0.5rem;">File Size</th>
+              <th style="padding: 0.75rem 0.5rem;">Exported At</th>
+              <th style="padding: 0.75rem 0.5rem; text-align: right;">Download</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for exp in exports %}
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono);">#{{ exp.id }}</td>
+                <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono);">{{ exp.file_ref }}</td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  <span class="badge badge-info">{{ exp.format.value|upper }}</span>
+                </td>
+                <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">
+                  {{ (exp.file_size_bytes / 1024)|round(1) if exp.file_size_bytes else '—' }} KB
+                </td>
+                <td style="padding: 0.75rem 0.5rem; color: var(--text-muted);">
+                  {{ exp.created_at.strftime('%Y-%m-%d %H:%M UTC') if exp.created_at else '—' }}
+                </td>
+                <td style="padding: 0.75rem 0.5rem; text-align: right;">
+                  <a href="{{ url_for('reports.download_export', export_id=exp.id) }}" class="btn btn-secondary" style="padding: 0.25rem 0.65rem; font-size: 0.8rem;">
+                    Download
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="padding: 1.5rem; text-align: center; color: var(--text-muted); background: var(--bg-deep); border-radius: 6px;">
+        No historical report exports saved.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
