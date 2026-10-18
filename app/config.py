@@ -67,15 +67,27 @@ class DevelopmentConfig(BaseConfig):
         "SECRET_KEY", "dev-insecure-key-do-not-use-in-production"
     )
 
-    # Use postgresql+psycopg2 driver explicitly for psycopg2-binary compatibility
-    _raw_url: str = os.environ.get(
-        "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/cybersec_lab_dev"
-    )
-    SQLALCHEMY_DATABASE_URI: str = (
-        _raw_url.replace("postgresql://", "postgresql+psycopg2://", 1)
-        if _raw_url.startswith("postgresql://")
-        else _raw_url
-    )
+    # Use postgresql+psycopg2 driver explicitly for psycopg2-binary compatibility.
+    # If DATABASE_URL is not provided and local Postgres is unreachable, fallback to SQLite.
+    @staticmethod
+    def _resolve_db_uri() -> str:
+        if "DATABASE_URL" in os.environ:
+            raw = os.environ["DATABASE_URL"]
+            return (
+                raw.replace("postgresql://", "postgresql+psycopg2://", 1)
+                if raw.startswith("postgresql://")
+                else raw
+            )
+        import socket
+        try:
+            with socket.create_connection(("localhost", 5432), timeout=0.2):
+                return "postgresql+psycopg2://postgres:postgres@localhost:5432/cybersec_lab_dev"
+        except OSError:
+            os.makedirs("instance", exist_ok=True)
+            abs_path = os.path.abspath("instance/dev.db").replace("\\", "/")
+            return f"sqlite:///{abs_path}"
+
+    SQLALCHEMY_DATABASE_URI: str = _resolve_db_uri.__func__()
 
 
 class ProductionConfig(BaseConfig):
