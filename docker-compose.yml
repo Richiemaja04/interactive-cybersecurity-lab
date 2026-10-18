@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: cybersec_lab_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cybersec_lab
+      POSTGRES_USER: cybersec_lab_user
+      POSTGRES_PASSWORD: ChangeThisSecurePostgresPassword123!
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cybersec_lab_user -d cybersec_lab"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: cybersec_lab_web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: production
+      DATABASE_URL: postgresql://cybersec_lab_user:ChangeThisSecurePostgresPassword123!@db:5432/cybersec_lab
+      SECRET_KEY: replace-with-a-very-long-and-secure-random-secret-key-32-chars
+      SESSION_LIFETIME_SECONDS: 3600
+      EXTERNAL_TARGETS_ENABLED: "false"
+      LOG_LEVEL: WARNING
+      REPORT_OUTPUT_DIR: instance/reports
+    volumes:
+      - lab_reports:/app/instance/reports
+
+volumes:
+  postgres_data:
+  lab_reports:
