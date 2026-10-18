@@ -3,7 +3,7 @@ services:
     name: cybersec-lab
     env: python
     region: oregon
-    plan: starter
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn "app:create_app()" --workers 2 --timeout 120 --bind 0.0.0.0:$PORT
     healthCheckPath: /health
@@ -28,6 +28,6 @@ services:
 
 databases:
   - name: cybersec-lab-db
-    plan: starter
+    plan: free
     databaseName: cybersec_lab
-    databaseUser: cybersec_lab_user
+    user: cybersec_lab_user
