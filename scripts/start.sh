@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
+# Ensure repository root is on PYTHONPATH
+export PYTHONPATH=".:${PYTHONPATH}"
+
 echo "==> Interactive Cybersecurity Lab: Booting service..."
 
 python scripts/init_db.py
