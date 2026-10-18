@@ -39,11 +39,11 @@ def create_app(config_name: str | None = None) -> Flask:
         )
     elif os.environ.get("DATABASE_URL") and not app.config.get("TESTING"):
         db_url = os.environ["DATABASE_URL"]
-        app.config["SQLALCHEMY_DATABASE_URI"] = (
-            db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
-            if db_url.startswith("postgresql://")
-            else db_url
-        )
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+        elif db_url.startswith("postgresql://") and "+psycopg2" not in db_url:
+            db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+        app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 
     # Validate production config on startup
     if config_name == "production" or os.environ.get("FLASK_ENV") == "production":
