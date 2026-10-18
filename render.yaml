@@ -5,9 +5,8 @@ services:
     region: oregon
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn "app:create_app()" --workers 2 --timeout 120 --bind 0.0.0.0:$PORT
+    startCommand: python -c "from app import create_app; from app.extensions import db; app = create_app(); with app.app_context(): db.create_all()" && python scripts/seed_test_definitions.py && gunicorn "app:create_app()" --workers 2 --timeout 120 --bind 0.0.0.0:$PORT
     healthCheckPath: /health
-    preDeployCommand: flask db upgrade
     envVars:
       - key: FLASK_ENV
         value: production
@@ -28,6 +27,7 @@ services:
 
 databases:
   - name: cybersec-lab-db
+    region: oregon
     plan: free
     databaseName: cybersec_lab
     user: cybersec_lab_user
