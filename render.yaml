@@ -8,6 +8,8 @@ services:
     startCommand: bash scripts/start.sh
     healthCheckPath: /health
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: FLASK_ENV
         value: production
       - key: DATABASE_URL
