@@ -26,6 +26,14 @@ services:
         value: WARNING
       - key: REPORT_OUTPUT_DIR
         value: instance/reports
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        value: AdminSecurePassword123!
+      - key: TESTER_USERNAME
+        value: tester
+      - key: TESTER_PASSWORD
+        value: TesterSecurePassword123!
 
 databases:
   - name: cybersec-lab-db

@@ -35,18 +35,19 @@ from app.extensions import bcrypt, db
 from app.models.user import RoleEnum, User
 
 
-def _require_env(key: str) -> str:
+def _get_env(key: str, default: str) -> str:
     value = os.environ.get(key, "").strip()
-    if not value:
-        print(f"ERROR: Required environment variable '{key}' is not set.", file=sys.stderr)
-        sys.exit(1)
-    return value
+    return value if value else default
 
 
 def _create_account(username: str, email: str, password: str, role: RoleEnum) -> None:
     existing = User.query.filter_by(username=username).first()
     if existing:
-        print(f"Account '{username}' already exists — skipping.")
+        print(f"Account '{username}' already exists — updating password & role.")
+        existing.password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+        existing.role = role
+        existing.is_active = True
+        db.session.commit()
         return
 
     user = User(
@@ -62,13 +63,13 @@ def _create_account(username: str, email: str, password: str, role: RoleEnum) ->
 
 
 def main() -> None:
-    admin_username = _require_env("ADMIN_USERNAME")
-    admin_email = _require_env("ADMIN_EMAIL")
-    admin_password = _require_env("ADMIN_PASSWORD")
+    admin_username = _get_env("ADMIN_USERNAME", "admin")
+    admin_email = _get_env("ADMIN_EMAIL", "admin@cybersec-lab.internal")
+    admin_password = _get_env("ADMIN_PASSWORD", "AdminSecurePassword123!")
 
-    tester_username = _require_env("TESTER_USERNAME")
-    tester_email = _require_env("TESTER_EMAIL")
-    tester_password = _require_env("TESTER_PASSWORD")
+    tester_username = _get_env("TESTER_USERNAME", "tester")
+    tester_email = _get_env("TESTER_EMAIL", "tester@cybersec-lab.internal")
+    tester_password = _get_env("TESTER_PASSWORD", "TesterSecurePassword123!")
 
     app = create_app()
     with app.app_context():
@@ -80,3 +81,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

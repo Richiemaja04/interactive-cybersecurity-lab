@@ -25,7 +25,8 @@ COPY . .
 # Ensure instance directory for reports and temporary database exists
 RUN mkdir -p instance/reports
 
-# Run as non-privileged user for container security
+# Ensure startup script is executable and run as non-privileged user
+RUN chmod +x scripts/start.sh
 RUN useradd -u 1001 -m labuser && chown -R labuser:labuser /app
 USER labuser
 
@@ -35,5 +36,5 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:5000/health || exit 1
 
-# Launch with Gunicorn WSGI server
-CMD ["gunicorn", "app:create_app()", "--workers", "2", "--timeout", "120", "--bind", "0.0.0.0:5000"]
+# Launch startup script
+CMD ["bash", "scripts/start.sh"]
